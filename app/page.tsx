@@ -21,7 +21,7 @@ export default function GroupDivider() {
   const [memberNames, setMemberNames] =
     useState('영주, 민지, 지아, 다희, 희승');
   const [numberOfGroups, setNumberOfGroups] = useState('2');
-  const [membersPerGroup, setMembersPerGroup] = useState('3');
+  // 조별 인원수는 자동으로 계산되므로 제거
   const [groups, setGroups] = useState<Group[]>([]);
   const [error, setError] = useState('');
 
@@ -53,22 +53,19 @@ export default function GroupDivider() {
     }
 
     const numGroups = Number.parseInt(numberOfGroups);
-    const numMembersPerGroup = Number.parseInt(membersPerGroup);
-
     if (!numGroups || numGroups <= 0) {
       setError('올바른 조 개수를 입력해주세요');
       return;
     }
 
-    if (!numMembersPerGroup || numMembersPerGroup <= 0) {
-      setError('올바른 조별 인원수를 입력해주세요');
+    if (numGroups > members.length) {
+      setError('조 개수가 멤버 수보다 많을 수 없습니다');
       return;
     }
 
-    if (numGroups * numMembersPerGroup > members.length) {
-      setError('설정한 조 구성에 비해 멤버가 부족해요');
-      return;
-    }
+    // 조별 인원수를 자동으로 조정하여 모든 멤버를 배분
+    const baseMembersPerGroup = Math.floor(members.length / numGroups);
+    const remainingMembers = members.length % numGroups;
 
     const shuffledMembers = shuffleArray(members);
 
@@ -78,9 +75,13 @@ export default function GroupDivider() {
     for (let i = 0; i < numGroups; i++) {
       const groupMembers: string[] = [];
 
+      // 기본 인원수 + 남은 멤버가 있으면 1명씩 추가
+      const currentGroupSize =
+        baseMembersPerGroup + (i < remainingMembers ? 1 : 0);
+
       for (
         let j = 0;
-        j < numMembersPerGroup && memberIndex < shuffledMembers.length;
+        j < currentGroupSize && memberIndex < shuffledMembers.length;
         j++
       ) {
         groupMembers.push(shuffledMembers[memberIndex]);
@@ -101,7 +102,6 @@ export default function GroupDivider() {
   const resetForm = () => {
     setMemberNames('영주, 민지, 지아, 다희, 희승');
     setNumberOfGroups('2');
-    setMembersPerGroup('3');
     setGroups([]);
     setError('');
   };
@@ -147,46 +147,27 @@ export default function GroupDivider() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <Label
-                  htmlFor="numGroups"
-                  className="text-lg font-semibold text-green-800"
-                >
-                  조 개수
-                </Label>
-                <Input
-                  id="numGroups"
-                  type="number"
-                  min="1"
-                  placeholder="2"
-                  value={numberOfGroups}
-                  onChange={(e) => setNumberOfGroups(e.target.value)}
-                  className={`text-base p-4 rounded-xl border-2 border-green-200 focus:border-green-400 ${
-                    !numberOfGroups ? 'text-gray-400' : 'text-black'
-                  }`}
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label
-                  htmlFor="membersPerGroup"
-                  className="text-lg font-semibold text-green-800"
-                >
-                  조별 인원수
-                </Label>
-                <Input
-                  id="membersPerGroup"
-                  type="number"
-                  min="1"
-                  placeholder="3"
-                  value={membersPerGroup}
-                  onChange={(e) => setMembersPerGroup(e.target.value)}
-                  className={`text-base p-4 rounded-xl border-2 border-green-200 focus:border-green-400 ${
-                    !membersPerGroup ? 'text-gray-400' : 'text-black'
-                  }`}
-                />
-              </div>
+            <div className="space-y-3">
+              <Label
+                htmlFor="numGroups"
+                className="text-lg font-semibold text-green-800"
+              >
+                조 개수
+              </Label>
+              <Input
+                id="numGroups"
+                type="number"
+                min="1"
+                placeholder="2"
+                value={numberOfGroups}
+                onChange={(e) => setNumberOfGroups(e.target.value)}
+                className={`text-base p-4 rounded-xl border-2 border-green-200 focus:border-green-400 ${
+                  !numberOfGroups ? 'text-gray-400' : 'text-black'
+                }`}
+              />
+              <p className="text-sm text-green-600">
+                조별 인원수는 자동으로 균등하게 배분됩니다
+              </p>
             </div>
 
             {error && (
