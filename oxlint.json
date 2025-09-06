@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "warn",
+    "style": "warn",
+    "complexity": "warn",
+    "perf": "warn"
+  },
+  "ignore": ["node_modules/**", ".next/**", "dist/**", "build/**"]
+}
